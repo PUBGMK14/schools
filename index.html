@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학성고등학교 급식표</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --accent: #c0392b;
+      --accent-light: #e74c3c;
+      --accent-muted: #fdecea;
+      --text: #1a1209;
+      --text-sub: #6b5b45;
+      --text-muted: #a89070;
+      --border: #ede3d5;
+      --shadow: 0 2px 16px rgba(60,30,10,0.07);
+      --shadow-card: 0 4px 32px rgba(60,30,10,0.10);
+      --today-bg: #fff8f0;
+      --today-border: #c0392b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--accent);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(192,57,43,0.18);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+    }
+    .logo-ko {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* ── WEEK NAV ── */
+    .week-nav {
+      max-width: 1100px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .week-label {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+      text-align: center;
+    }
+    .nav-btn {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 1.1rem;
+      transition: all 0.18s;
+      box-shadow: var(--shadow);
+    }
+    .nav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .today-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.18s;
+    }
+    .today-btn:hover { opacity: 0.85; }
+
+    /* ── GRID ── */
+    .week-grid {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      padding: 0 24px 60px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 800px) {
+      .week-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .week-grid { grid-template-columns: 1fr; }
+      .header-inner { flex-wrap: wrap; }
+    }
+
+    /* ── DAY CARD ── */
+    .day-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.18s, box-shadow 0.18s;
+      display: flex;
+      flex-direction: column;
+    }
+    .day-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+    .day-card.today {
+      border-color: var(--today-border);
+      box-shadow: 0 0 0 2px var(--accent-muted), var(--shadow-card);
+    }
+    .day-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .day-card.today .day-header { background: var(--accent); }
+    .day-name {
+      font-family: 'Nanum Myeongjo', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .day-card.today .day-name { color: #fff; }
+    .day-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .day-card.today .day-date { color: rgba(255,255,255,0.8); }
+    .today-badge {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.68rem;
+      font-weight: 500;
+    }
+    .day-body { padding: 14px; flex: 1; }
+
+    .menu-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .menu-name { flex: 1; }
+    .menu-allergen {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .meal-info {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+    .info-label {
+      font-weight: 500;
+      color: var(--accent);
+      min-width: 40px;
+    }
+
+    .no-meal {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .no-meal-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    /* ── LOADING / ERROR ── */
+    .state-box {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      font-size: 0.78rem;
+      padding: 20px;
+    }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+
+    /* ── ALLERGEN LEGEND ── */
+    .allergen-legend {
+      max-width: 1100px;
+      margin: 0 auto 0;
+      padding: 0 24px 0;
+    }
+    .legend-toggle {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-content {
+      display: none;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      line-height: 1.8;
+    }
+    .legend-content.open { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="logo-sub">학성고등학교</div>
+      <div class="logo-ko">🍱 급식표</div>
+    </div>
+    <div class="header-badge" id="today-display"></div>
+  </div>
+</header>
+
+<div class="week-nav">
+  <button class="nav-btn" id="prev-btn" title="이전 주">&#8592;</button>
+  <div class="week-label" id="week-label"></div>
+  <button class="nav-btn" id="next-btn" title="다음 주">&#8594;</button>
+  <button class="today-btn" id="today-btn">오늘</button>
+</div>
+
+<div class="allergen-legend">
+  <button class="legend-toggle" onclick="toggleLegend()">
+    ⚠️ 알레르기 번호 안내 ▾
+  </button>
+  <div class="legend-content" id="legend">
+    1.난류 2.우유 3.메밀 4.땅콩 5.대두 6.밀 7.고등어 8.게 9.새우 10.돼지고기 11.복숭아 12.토마토 13.아황산류 14.호두 15.닭고기 16.쇠고기 17.오징어 18.조개류(굴,전복,홍합 포함) 19.잣
+  </div>
+</div>
+
+<div id="main-content">
+  <div class="state-box">
+    <div class="spinner"></div>
+    <div>급식 정보를 불러오는 중...</div>
+  </div>
+</div>
+
+<footer>
+  <div>데이터 출처: <a href="https://open.neis.go.kr" target="_blank">NEIS 교육정보 개방 포털</a> · 학성고등학교 급식표</div>
+</footer>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const KEY   = 'ad7ef12adeb548f89194a4563ef8ede0';
+  const OFCDC = 'H10';     // 울산광역시교육청
+  const SCHUL = '7480029'; // 학성고등학교
+  const MEAL  = '2';       // 중식 고정
+  // ──────────────────────────────────────────────────────────
+
+  const DAY_KO   = ['일', '월', '화', '수', '목', '금', '토'];
+  const DAY_FULL = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+
+  let baseMonday = getMonday(new Date());
+
+  // ── UTILS ─────────────────────────────────────────────────
+  function getMonday(d) {
+    const date = new Date(d);
+    const day  = date.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    date.setDate(date.getDate() + diff);
+    date.setHours(0,0,0,0);
+    return date;
+  }
+
+  function toYMD(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}${m}${day}`;
+  }
+
+  function formatDate(d) {
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  }
+
+  function isToday(d) {
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() &&
+           d.getMonth()    === now.getMonth()    &&
+           d.getDate()     === now.getDate();
+  }
+
+  function getWeekDays(monday) {
+    return Array.from({length:5}, (_,i) => {
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+  }
+
+  // ── TODAY DISPLAY ─────────────────────────────────────────
+  function updateTodayDisplay() {
+    const now = new Date();
+    const display = document.getElementById('today-display');
+    display.textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${DAY_KO[now.getDay()]})`;
+  }
+
+  // ── WEEK LABEL ────────────────────────────────────────────
+  function updateWeekLabel(days) {
+    const first = days[0], last = days[4];
+    document.getElementById('week-label').textContent =
+      `${first.getFullYear()}년 ${first.getMonth()+1}월 ${first.getDate()}일 — ${last.getMonth()+1}월 ${last.getDate()}일`;
+  }
+
+  // ── API ───────────────────────────────────────────────────
+  async function fetchMeals(fromYMD, toYMD) {
+    const url = `https://open.neis.go.kr/hub/mealServiceDietInfo`
+      + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
+      + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
+      + `&MMEAL_SC_CODE=${MEAL}`
+      + `&MLSV_FROM_YMD=${fromYMD}&MLSV_TO_YMD=${toYMD}`;
+
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (data.mealServiceDietInfo) {
+      return data.mealServiceDietInfo[1].row; // array of meal rows
+    }
+    return [];
+  }
+
+  // ── PARSE MENU STRING ─────────────────────────────────────
+  function parseMenu(ddishNm) {
+    return ddishNm.split('<br/>').map(item => {
+      const name     = item.replace(/\([\d.]+\)/g, '').trim();
+      const allergens = [...item.matchAll(/(\d+)/g)].map(m => m[1]);
+      return { name, allergens };
+    }).filter(i => i.name);
+  }
+
+  // ── RENDER ────────────────────────────────────────────────
+  function renderMealCard(day, meal) {
+    const today = isToday(day);
+    const dayIdx = day.getDay();
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (today ? ' today' : '');
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'day-header';
+    header.innerHTML = `
+      <div>
+        <div class="day-name">${DAY_KO[dayIdx]}요일</div>
+        <div class="day-date">${formatDate(day)}</div>
+      </div>
+      ${today ? '<span class="today-badge">오늘</span>' : ''}
+    `;
+    card.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'day-body';
+
+    if (!meal) {
+      body.innerHTML = `
+        <div class="no-meal">
+          <div class="no-meal-icon">🚫</div>
+          <div>급식 정보 없음</div>
+        </div>`;
+    } else {
+      const items = parseMenu(meal.DDISH_NM || '');
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'menu-item';
+        div.innerHTML = `
+          <div class="menu-dot"></div>
+          <div class="menu-name">${item.name}</div>
+          ${item.allergens.length ? `<div class="menu-allergen">${item.allergens.join('.')}</div>` : ''}
+        `;
+        body.appendChild(div);
+      });
+
+      // Cal + Ntr info
+      const infoRows = [];
+      if (meal.CAL_INFO) infoRows.push(`<div class="info-row"><span class="info-label">칼로리</span>${meal.CAL_INFO}</div>`);
+      if (meal.MLSV_FGR) infoRows.push(`<div class="info-row"><span class="info-label">인원</span>${meal.MLSV_FGR}명</div>`);
+      if (infoRows.length) {
+        const info = document.createElement('div');
+        info.className = 'meal-info';
+        info.innerHTML = infoRows.join('');
+        body.appendChild(info);
+      }
+    }
+
+    card.appendChild(body);
+    return card;
+  }
+
+  // ── LOAD WEEK ─────────────────────────────────────────────
+  async function loadWeek() {
+    const days = getWeekDays(baseMonday);
+    updateWeekLabel(days);
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = `<div class="state-box"><div class="spinner"></div><div>급식 정보를 불러오는 중...</div></div>`;
+
+    let meals = [];
+    try {
+      meals = await fetchMeals(toYMD(days[0]), toYMD(days[4]));
+    } catch(e) {
+      main.innerHTML = `<div class="state-box">⚠️ 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>`;
+      return;
+    }
+
+    // Map meals by date
+    const mealMap = {};
+    meals.forEach(m => { mealMap[m.MLSV_YMD] = m; });
+
+    const grid = document.createElement('div');
+    grid.className = 'week-grid';
+
+    days.forEach(day => {
+      const ymd  = toYMD(day);
+      const meal = mealMap[ymd] || null;
+      grid.appendChild(renderMealCard(day, meal));
+    });
+
+    main.innerHTML = '';
+    main.appendChild(grid);
+  }
+
+  // ── CONTROLS ──────────────────────────────────────────────
+  document.getElementById('prev-btn').addEventListener('click', () => {
+    baseMonday.setDate(baseMonday.getDate() - 7);
+    loadWeek();
+  });
+  document.getElementById('next-btn').addEventListener('click', () => {
+    baseMonday.setDate(baseMonday.getDate() + 7);
+    loadWeek();
+  });
+  document.getElementById('today-btn').addEventListener('click', () => {
+    baseMonday = getMonday(new Date());
+    loadWeek();
+  });
+
+  function toggleLegend() {
+    document.getElementById('legend').classList.toggle('open');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────
+  updateTodayDisplay();
+  loadWeek();
+</script>
+</body>
+</html>
