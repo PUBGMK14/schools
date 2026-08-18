@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>학성고등학교 시간표</title>
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#c0392b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="시간표" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -260,6 +270,7 @@
   
   const BASE_OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
   const MAPPING_PATH = `settings/subjectTeachers`;
+  const SPECIAL_MAPPING_PATH = `settings/specialSubjectTeachers`;
 
   function getOverridePath(mondayDate) {
     return `${BASE_OVERRIDE_PATH}_${toYMD(mondayDate)}`;
@@ -272,19 +283,23 @@
   let baseMonday   = getMonday(new Date());
   let overrideData = {}; 
   let teacherMappings = {}; 
+  let specialMappings = {}; 
 
   async function loadSettingsAndOverrides() {
     if (!db) return;
     try {
-      const [overrideSnap, mappingSnap] = await Promise.all([
+      const [overrideSnap, mappingSnap, specialSnap] = await Promise.all([
         get(ref(db, getOverridePath(baseMonday))),
-        get(ref(db, MAPPING_PATH))
+        get(ref(db, MAPPING_PATH)),
+        get(ref(db, SPECIAL_MAPPING_PATH))
       ]);
       overrideData = overrideSnap.exists() ? overrideSnap.val() : {};
       teacherMappings = mappingSnap.exists() ? mappingSnap.val() : {};
+      specialMappings = specialSnap.exists() ? specialSnap.val() : {};
     } catch (e) {
       overrideData = {};
       teacherMappings = {};
+      specialMappings = {};
       console.error('데이터 불러오기 실패:', e);
     }
   }
@@ -370,21 +385,39 @@
     return rows;
   }
 
-  function formatSubjectContent(rawText) {
+  function formatSubjectContent(dayId, period, rawText) {
     if (!rawText || rawText === '-') return '-';
     const trimmed = rawText.trim();
     
     let subject = trimmed;
     let teacher = '';
 
+    // 1. NEIS 기본 데이터에 슬래시('/') 형태가 있는 경우
     if (trimmed.includes('/')) {
       const parts = trimmed.split('/');
       subject = parts[0].trim();
       teacher = parts.slice(1).join('/').trim();
     } 
-    
-    if (!teacher && teacherMappings && teacherMappings[subject]) {
-      teacher = teacherMappings[subject];
+
+    // 2. 특수 매핑(요일·교시별) 확인 우선 적용
+    const specialKey = `${dayId}-${period}`;
+    if (specialMappings[specialKey]) {
+      const sp = specialMappings[specialKey];
+      if (subject.includes(sp.subject) || sp.subject.includes(subject)) {
+        if (sp.teachers) {
+          teacher = sp.teachers;
+        }
+      }
+    }
+
+    // 3. 특수 매핑에 선생님 정보가 없다면 일반 매핑(과목별) 확인
+    if (!teacher) {
+      for (const [key, val] of Object.entries(teacherMappings)) {
+        if (subject.includes(key) || key.includes(subject)) {
+          teacher = val;
+          break;
+        }
+      }
     }
 
     if (teacher) {
@@ -409,6 +442,7 @@
       html += `<tr><td class="period-cell">${p}</td>`;
       days.forEach(day => {
         const today = isToday(day);
+        const dayId = DOW_TO_ID[day.getDay()];
         const row = (byDate[toYMD(day)] || {})[p];
         const override = getOverride(day, p);
         const hasOverride = override !== undefined && override !== '';
@@ -420,7 +454,7 @@
         if (hasOverride) classes.push('overridden');
         if (isEmpty) classes.push('empty');
 
-        const formattedContent = formatSubjectContent(raw);
+        const formattedContent = formatSubjectContent(dayId, p, raw);
         const tagHtml = hasOverride ? ' <span class="override-tag">변경</span>' : '';
 
         html += `<td class="${classes.join(' ')}">${formattedContent}${tagHtml}</td>`;
@@ -477,7 +511,6 @@
     main.appendChild(footnote);
   }
 
-  // 이벤트 리스너 등록
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
   const todayBtn = document.getElementById('today-btn');
