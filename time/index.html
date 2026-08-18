@@ -150,110 +150,28 @@
     }
     .class-badge b { color: var(--accent); font-weight: 700; }
 
-    /* ── DESKTOP GRID ── */
-    .week-grid {
-      max-width: 1100px;
-      margin: 20px auto 0;
-      padding: 0 24px 60px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
+    /* ── WEEK TABLE ── */
+    .table-outer { max-width: 1100px; margin: 20px auto 0; padding: 0 24px 60px; }
+    .table-wrap { overflow-x: auto; border-radius: 14px; box-shadow: var(--shadow); background: var(--card); }
+    table.week-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+    .week-table th, .week-table td { border: 1px solid var(--border); }
+    .week-table thead th {
+      background: #fbf6ee; color: var(--text-sub);
+      font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 0.92rem;
+      padding: 10px 4px 8px; text-align: center; line-height: 1.5;
     }
-    @media (max-width: 1024px) and (min-width: 768px) {
-      .week-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    /* ── DAY CARD (shared) ── */
-    .day-card {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: transform 0.18s, box-shadow 0.18s;
-      display: flex;
-      flex-direction: column;
-    }
-    .day-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
-    .day-card.today {
-      border-color: var(--today-border);
-      box-shadow: 0 0 0 2px var(--accent-muted), var(--shadow-card);
-    }
-    .day-header {
-      padding: 12px 14px 10px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .day-card.today .day-header { background: var(--accent); }
-    .day-name {
-      font-family: 'Nanum Myeongjo', serif;
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--text);
-    }
-    .day-card.today .day-name { color: #fff; }
-    .day-date { font-size: 0.75rem; color: var(--text-muted); }
-    .day-card.today .day-date { color: rgba(255,255,255,0.8); }
-    .today-badge {
-      background: rgba(255,255,255,0.25);
-      color: #fff;
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.68rem;
-      font-weight: 500;
-    }
-    .day-body { padding: 14px; flex: 1; }
-
-    .period-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px dashed var(--border);
-      font-size: 0.85rem;
-      color: var(--text);
-      line-height: 1.4;
-    }
-    .period-item:last-child { border-bottom: none; }
-    .period-num {
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: var(--accent-muted);
-      color: var(--accent);
-      font-size: 0.68rem;
-      font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .period-subj { flex: 1; font-weight: 500; }
-    .period-item.empty .period-subj { color: var(--text-muted); }
-    .period-item.overridden { background: #fff8e6; margin: 0 -14px; padding: 6px 14px; }
-    .override-tag {
-      font-size: 0.62rem;
-      color: #b8860b;
-      background: #fff2c9;
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-weight: 700;
-      margin-left: 4px;
-    }
-
-    .meal-info {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1.5px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .info-row { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-sub); }
-    .info-label { font-weight: 500; color: var(--accent); min-width: 48px; }
-
-    .no-meal { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 0.85rem; }
-    .no-meal-icon { font-size: 2rem; margin-bottom: 8px; }
+    .week-table thead th .th-date { font-family: 'Noto Sans KR', sans-serif; font-size: 0.7rem; font-weight: 500; color: var(--text-muted); display: block; }
+    .week-table thead th.today-col { background: var(--accent); color: #fff; }
+    .week-table thead th.today-col .th-date { color: rgba(255,255,255,0.8); }
+    .week-table thead th.period-head { width: 44px; background: #fbf6ee; }
+    .week-table td.period-cell { background: #fbf6ee; color: var(--text-sub); font-weight: 700; font-size: 0.8rem; text-align: center; width: 44px; }
+    .week-table td.subj-cell { padding: 10px 10px; font-size: 0.85rem; color: var(--text); vertical-align: middle; min-height: 52px; position: relative; }
+    .week-table td.subj-cell.today-col { background: var(--accent-muted); }
+    .week-table td.subj-cell.empty { color: var(--text-muted); }
+    .week-table td.subj-cell.overridden { background: #fff7d6; }
+    .override-tag { font-size: 0.6rem; color: #9a6b00; background: #ffe9a8; border-radius: 4px; padding: 1px 5px; font-weight: 700; margin-left: 5px; white-space: nowrap; }
+    .table-footnote { margin-top: 12px; font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .table-footnote .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff7d6; border: 1.5px solid #d4a017; display: inline-block; }
 
     /* ── LOADING ── */
     .state-box { max-width: 1100px; margin: 40px auto; padding: 0 24px; text-align: center; color: var(--text-muted); }
@@ -271,89 +189,15 @@
     footer { background: var(--text); color: rgba(255,255,255,0.5); text-align: center; font-size: 0.78rem; padding: 20px; }
     footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
 
-    /* ════════════════════════════════════════
-       MOBILE CAROUSEL  (≤ 767px)
-    ════════════════════════════════════════ */
-    .mobile-carousel { display: none; }
-
     @media (max-width: 767px) {
-      /* hide desktop grid */
-      #main-content .week-grid { display: none !important; }
-
-      /* header */
       .header-inner { flex-wrap: wrap; padding: 14px 16px 12px; }
       .logo-ko { font-size: 1.25rem; }
       .header-badge { font-size: 0.72rem; padding: 4px 10px; }
       .week-nav { padding: 0 16px; margin-top: 20px; }
       .week-label { font-size: 1rem; }
       .class-info { padding: 0 16px; }
-
-      /* show carousel */
-      .mobile-carousel { display: block; padding-bottom: 60px; }
-
-      /* day tab strip */
-      .day-tabs {
-        display: flex;
-        padding: 12px 16px 0;
-        gap: 6px;
-        overflow-x: auto;
-        scrollbar-width: none;
-      }
-      .day-tabs::-webkit-scrollbar { display: none; }
-      .day-tab {
-        flex: 1;
-        min-width: 52px;
-        background: var(--card);
-        border: 1.5px solid var(--border);
-        border-radius: 10px;
-        padding: 8px 4px;
-        text-align: center;
-        cursor: pointer;
-        font-family: 'Noto Sans KR', sans-serif;
-        font-size: 0.75rem;
-        color: var(--text-sub);
-        transition: all 0.18s;
-        line-height: 1.4;
-      }
-      .day-tab .tab-day  { font-weight: 700; display: block; }
-      .day-tab .tab-date { font-size: 0.65rem; color: var(--text-muted); display: block; }
-      .day-tab.active    { background: var(--accent); border-color: var(--accent); color: #fff; }
-      .day-tab.active .tab-date { color: rgba(255,255,255,0.8); }
-
-      /* slider */
-      .carousel-track-wrap { overflow: hidden; width: 100%; margin-top: 12px; }
-      .carousel-track {
-        display: flex;
-        transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-        will-change: transform;
-      }
-      .carousel-slide { flex: 0 0 100%; width: 100%; padding: 0 16px; }
-
-      /* prev / next */
-      .carousel-nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 16px 0;
-        gap: 10px;
-      }
-      .carousel-nav-btn {
-        background: var(--card);
-        border: 1.5px solid var(--border);
-        border-radius: 999px;
-        padding: 10px 0;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--accent);
-        cursor: pointer;
-        font-family: 'Noto Sans KR', sans-serif;
-        transition: all 0.18s;
-        flex: 1;
-        text-align: center;
-      }
-      .carousel-nav-btn:active { background: var(--accent); color: #fff; border-color: var(--accent); }
-      .carousel-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
-      .carousel-counter { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+      .table-outer { padding: 0 16px 40px; }
+      .week-table td.subj-cell { font-size: 0.8rem; padding: 8px 6px; }
     }
   </style>
 </head>
@@ -380,16 +224,12 @@
   <span class="class-badge"><b>3학년 9반</b> · <span id="term-display"></span></span>
 </div>
 
-<!-- 데스크탑 / 태블릿 그리드 -->
-<div id="main-content">
+<div class="table-outer" id="main-content">
   <div class="state-box">
     <div class="spinner"></div>
     <div>시간표를 불러오는 중...</div>
   </div>
 </div>
-
-<!-- 모바일 캐러셀 -->
-<div class="mobile-carousel" id="mobile-carousel"></div>
 
 <footer>
   <div>데이터 출처: <a href="https://open.neis.go.kr" target="_blank">NEIS 교육정보 개방 포털</a> · 학성고등학교 시간표</div>
@@ -423,10 +263,9 @@
 
   const DAY_KO = ['일','월','화','수','목','금','토'];
   const DOW_TO_ID = { 1:'mon', 2:'tue', 3:'wed', 4:'thu', 5:'fri' };
+  const PERIODS = [1,2,3,4,5,6,7];
 
   let baseMonday   = getMonday(new Date());
-  let carouselIdx  = 0;
-  let touchStartX  = 0;
   let overrideData = {}; // { mon: {1: '국어', ...}, ... }
 
   // ── FIREBASE ──────────────────────────────────────
@@ -504,153 +343,63 @@
     return data.hisTimetable ? data.hisTimetable[1].row : [];
   }
   async function fetchTimetable(from, to) {
-    // AY/SEM을 명시하면 정확도가 올라가지만, 학교마다 2학기 시작 시점이 달라
-    // (8월 중순부터 2학기인 경우도 흔함) 계산한 학기가 실제와 다르면 NEIS가
-    // 0건을 반환할 수 있다. 그래서 AY/SEM을 지정해 먼저 시도하고,
-    // 결과가 없으면 AY/SEM 없이(NEIS가 날짜만으로 자동 판별하도록) 재시도한다.
-    const ay = getAY(baseMonday);
-    const sem = getSem(baseMonday);
+    // NEIS는 TI_FROM_YMD~TI_TO_YMD 날짜 범위만으로 각 날짜에 맞는 학기 데이터를
+    // 정확히 반환해준다. AY/SEM을 우리가 추측해서 같이 보내면, 그 주간에 학기가
+    // 바뀌는 경우(예: 방학 전/후로 한 주 안에 1·2학기가 섞여 있는 경우) 일부
+    // 요일만 해당 학기로 걸려서 나머지 요일 데이터가 통째로 누락될 수 있다.
+    // 그래서 기본은 AY/SEM 없이 조회하고, 혹시 그 결과가 완전히 비어 있을 때만
+    // (드문 예외 상황 대비) 추정 학기를 명시해서 한 번 더 시도한다.
     const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
       + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
       + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
       + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
       + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
-    const urlWithSem = `${baseUrl}&AY=${ay}&SEM=${sem}`;
 
-    let rows = await tryFetchRows(urlWithSem);
+    let rows = await tryFetchRows(baseUrl);
     if (rows.length === 0) {
-      rows = await tryFetchRows(baseUrl); // 학기 미지정 재시도
+      const ay = getAY(baseMonday);
+      const sem = getSem(baseMonday);
+      rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`); // 추정 학기로 재시도
     }
     return rows;
   }
 
-  // ── BUILD CARD ────────────────────────────────────
-  function buildCard(day, periods) {
-    const today = isToday(day);
-    const card  = document.createElement('div');
-    card.className = 'day-card' + (today ? ' today' : '');
+  // ── BUILD WEEK TABLE ───────────────────────────────
+  function buildWeekTable(days, byDate) {
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
 
-    const header = document.createElement('div');
-    header.className = 'day-header';
-    header.innerHTML = `
-      <div>
-        <div class="day-name">${DAY_KO[day.getDay()]}요일</div>
-        <div class="day-date">${fmt(day)}</div>
-      </div>
-      ${today ? '<span class="today-badge">오늘</span>' : ''}`;
-    card.appendChild(header);
-
-    const body = document.createElement('div');
-    body.className = 'day-body';
-
-    if (!periods || periods.length === 0) {
-      body.innerHTML = `<div class="no-meal"><div class="no-meal-icon">📭</div><div>시간표 정보 없음</div></div>`;
-    } else {
-      const sorted = [...periods].sort((a,b) => parseInt(a.PERIO) - parseInt(b.PERIO));
-      let latestLoad = '';
-      sorted.forEach(p => {
-        const override = getOverride(day, p.PERIO);
-        const hasOverride = override !== undefined && override !== '';
-        const subj = hasOverride ? override : (p.ITRT_CNTNT || '-');
-
-        const div = document.createElement('div');
-        div.className = 'period-item' + (hasOverride ? ' overridden' : '');
-        div.innerHTML = `
-          <div class="period-num">${p.PERIO}</div>
-          <div class="period-subj">${subj}${hasOverride ? ' <span class="override-tag">변경</span>' : ''}</div>`;
-        body.appendChild(div);
-        if (p.LOAD_DTM && p.LOAD_DTM > latestLoad) latestLoad = p.LOAD_DTM;
-      });
-      if (latestLoad) {
-        const info = document.createElement('div');
-        info.className = 'meal-info';
-        info.innerHTML = `<div class="info-row"><span class="info-label">수정일자</span>${fmtLoadDtm(latestLoad)}</div>`;
-        body.appendChild(info);
-      }
-    }
-    card.appendChild(body);
-    return card;
-  }
-
-  // ── MOBILE CAROUSEL ───────────────────────────────
-  function buildCarousel(days, byDate) {
-    const todayIdx = days.findIndex(d => isToday(d));
-    carouselIdx    = todayIdx >= 0 ? todayIdx : 0;
-
-    const wrap = document.getElementById('mobile-carousel');
-    wrap.innerHTML = '';
-
-    // ① 요일 탭
-    const tabStrip = document.createElement('div');
-    tabStrip.className = 'day-tabs';
-    days.forEach((day, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'day-tab' + (i === carouselIdx ? ' active' : '');
-      btn.innerHTML = `<span class="tab-day">${DAY_KO[day.getDay()]}</span><span class="tab-date">${fmt(day)}</span>`;
-      btn.addEventListener('click', () => goTo(i));
-      tabStrip.appendChild(btn);
-    });
-    wrap.appendChild(tabStrip);
-
-    // ② 슬라이더 트랙
-    const trackWrap = document.createElement('div');
-    trackWrap.className = 'carousel-track-wrap';
-    const track = document.createElement('div');
-    track.className = 'carousel-track';
-    track.id = 'c-track';
-
+    let html = '<table class="week-table"><thead><tr><th class="period-head">교시</th>';
     days.forEach(day => {
-      const slide = document.createElement('div');
-      slide.className = 'carousel-slide';
-      slide.appendChild(buildCard(day, byDate[toYMD(day)] || []));
-      track.appendChild(slide);
+      const today = isToday(day);
+      html += `<th class="${today ? 'today-col' : ''}">${DAY_KO[day.getDay()]}요일<span class="th-date">${fmt(day)}</span></th>`;
     });
-    trackWrap.appendChild(track);
+    html += '</tr></thead><tbody>';
 
-    // 스와이프 터치
-    trackWrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive:true});
-    trackWrap.addEventListener('touchend',   e => {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(dx) > 40) goTo(carouselIdx + (dx < 0 ? 1 : -1));
-    }, {passive:true});
-
-    wrap.appendChild(trackWrap);
-
-    // ③ 이전/다음 버튼
-    const nav = document.createElement('div');
-    nav.className = 'carousel-nav';
-    nav.innerHTML = `
-      <button class="carousel-nav-btn" id="c-prev">&#8592; 이전 날</button>
-      <span class="carousel-counter" id="c-cnt"></span>
-      <button class="carousel-nav-btn" id="c-next">다음 날 &#8594;</button>`;
-    wrap.appendChild(nav);
-
-    document.getElementById('c-prev').addEventListener('click', () => goTo(carouselIdx - 1));
-    document.getElementById('c-next').addEventListener('click', () => goTo(carouselIdx + 1));
-
-    applyPos(false);
+    PERIODS.forEach(p => {
+      html += `<tr><td class="period-cell">${p}</td>`;
+      days.forEach(day => {
+        const today = isToday(day);
+        const row = (byDate[toYMD(day)] || {})[p];
+        const override = getOverride(day, p);
+        const hasOverride = override !== undefined && override !== '';
+        const raw = hasOverride ? override : (row ? (row.ITRT_CNTNT || '') : '');
+        const isEmpty = !raw;
+        const classes = ['subj-cell'];
+        if (today) classes.push('today-col');
+        if (hasOverride) classes.push('overridden');
+        if (isEmpty) classes.push('empty');
+        html += `<td class="${classes.join(' ')}">${isEmpty ? '-' : escapeHtml(raw)}${hasOverride ? ' <span class="override-tag">변경</span>' : ''}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+    return wrap;
   }
 
-  function goTo(idx) {
-    idx = Math.max(0, Math.min(4, idx));
-    carouselIdx = idx;
-    applyPos(true);
-    document.querySelectorAll('.day-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
-    const tabs = document.querySelectorAll('.day-tab');
-    if (tabs[idx]) tabs[idx].scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
-  }
-
-  function applyPos(animate) {
-    const track = document.getElementById('c-track');
-    if (!track) return;
-    track.style.transition = animate ? 'transform 0.35s cubic-bezier(0.4,0,0.2,1)' : 'none';
-    track.style.transform  = `translateX(-${carouselIdx * 100}%)`;
-    const cnt  = document.getElementById('c-cnt');
-    const prev = document.getElementById('c-prev');
-    const next = document.getElementById('c-next');
-    if (cnt)  cnt.textContent  = `${carouselIdx+1} / 5`;
-    if (prev) prev.disabled    = carouselIdx === 0;
-    if (next) next.disabled    = carouselIdx === 4;
+  function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   // ── LOAD WEEK ─────────────────────────────────────
@@ -659,18 +408,15 @@
     updateWeekLabel(days);
 
     const main = document.getElementById('main-content');
-    const mob  = document.getElementById('mobile-carousel');
-    const loadHTML = `<div class="state-box"><div class="spinner"></div><div>시간표를 불러오는 중...</div></div>`;
-    main.innerHTML = loadHTML;
-    mob.innerHTML  = loadHTML;
+    main.innerHTML = `<div class="state-box"><div class="spinner"></div><div>시간표를 불러오는 중...</div></div>`;
 
     let rows = [];
     try {
       await loadOverrides();
       rows = await fetchTimetable(toYMD(days[0]), toYMD(days[4]));
     } catch(e) {
-      const err = `<div class="state-box">⚠️ 정보를 불러오지 못했습니다.</div>`;
-      main.innerHTML = err; mob.innerHTML = err; return;
+      main.innerHTML = `<div class="state-box">⚠️ 정보를 불러오지 못했습니다.</div>`;
+      return;
     }
 
     updateTermFromRows(rows);
@@ -685,20 +431,14 @@
         byDate[d][r.PERIO] = r;
       }
     });
-    // buildCard가 기대하는 배열 형태로 변환
-    Object.keys(byDate).forEach(d => {
-      byDate[d] = Object.values(byDate[d]);
-    });
 
-    // 데스크탑 그리드
-    const grid = document.createElement('div');
-    grid.className = 'week-grid';
-    days.forEach(day => grid.appendChild(buildCard(day, byDate[toYMD(day)] || [])));
     main.innerHTML = '';
-    main.appendChild(grid);
+    main.appendChild(buildWeekTable(days, byDate));
 
-    // 모바일 캐러셀
-    buildCarousel(days, byDate);
+    const footnote = document.createElement('div');
+    footnote.className = 'table-footnote';
+    footnote.innerHTML = `<span class="dot"></span> 학교 측에서 수정한 칸`;
+    main.appendChild(footnote);
   }
 
   // ── CONTROLS ──────────────────────────────────────
