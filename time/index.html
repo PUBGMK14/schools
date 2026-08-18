@@ -498,19 +498,30 @@
   }
 
   // ── API ───────────────────────────────────────────
-  async function fetchTimetable(from, to) {
-    // AY/SEM을 명시하지 않으면 NEIS가 엉뚱한 학기 데이터를 섞어 줄 수 있어
-    // 조회 기준일(주의 월요일)로 학기를 계산해 명시적으로 요청한다.
-    const ay = getAY(baseMonday);
-    const sem = getSem(baseMonday);
-    const url = `https://open.neis.go.kr/hub/hisTimetable`
-      + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
-      + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
-      + `&AY=${ay}&SEM=${sem}&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
-      + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
+  async function tryFetchRows(url) {
     const resp = await fetch(url);
     const data = await resp.json();
     return data.hisTimetable ? data.hisTimetable[1].row : [];
+  }
+  async function fetchTimetable(from, to) {
+    // AY/SEM을 명시하면 정확도가 올라가지만, 학교마다 2학기 시작 시점이 달라
+    // (8월 중순부터 2학기인 경우도 흔함) 계산한 학기가 실제와 다르면 NEIS가
+    // 0건을 반환할 수 있다. 그래서 AY/SEM을 지정해 먼저 시도하고,
+    // 결과가 없으면 AY/SEM 없이(NEIS가 날짜만으로 자동 판별하도록) 재시도한다.
+    const ay = getAY(baseMonday);
+    const sem = getSem(baseMonday);
+    const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
+      + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
+      + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
+      + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
+      + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
+    const urlWithSem = `${baseUrl}&AY=${ay}&SEM=${sem}`;
+
+    let rows = await tryFetchRows(urlWithSem);
+    if (rows.length === 0) {
+      rows = await tryFetchRows(baseUrl); // 학기 미지정 재시도
+    }
+    return rows;
   }
 
   // ── BUILD CARD ────────────────────────────────────
