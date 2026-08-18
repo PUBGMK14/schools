@@ -258,7 +258,12 @@
   const SCHUL = '7480029';
   const GRADE = '3';
   const CLASS_NM = '9';
-  const OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+  
+  const BASE_OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+
+  function getOverridePath(mondayDate) {
+    return `${BASE_OVERRIDE_PATH}_${toYMD(mondayDate)}`;
+  }
   // ─────────────────────────────────────────────────
 
   const DAY_KO = ['일','월','화','수','목','금','토'];
@@ -266,12 +271,13 @@
   const PERIODS = [1,2,3,4,5,6,7];
 
   let baseMonday   = getMonday(new Date());
-  let overrideData = {}; // { mon: {1: '국어', ...}, ... }
+  let overrideData = {}; 
 
   // ── FIREBASE ──────────────────────────────────────
   async function loadOverrides() {
     try {
-      const snap = await get(ref(db, OVERRIDE_PATH));
+      const path = getOverridePath(baseMonday);
+      const snap = await get(ref(db, path));
       overrideData = snap.exists() ? snap.val() : {};
     } catch (e) {
       overrideData = {};
@@ -307,13 +313,7 @@
   function getAY(d) { return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear() - 1; }
   function getSem(d) {
     const m = d.getMonth() + 1;
-    // 3~8월 = 1학기, 9월~다음해 2월 = 2학기
-    // (여름방학이 8월 말까지 걸쳐있는 학교가 많아 8월은 학교 학사일정에 따라 다를 수 있음)
     return (m >= 3 && m <= 8) ? '1' : '2';
-  }
-  function fmtLoadDtm(s) {
-    if (!s || s.length < 8) return '';
-    return `${s.slice(0,4)}.${s.slice(4,6)}.${s.slice(6,8)}`;
   }
 
   // ── HEADER ────────────────────────────────────────
@@ -343,12 +343,6 @@
     return data.hisTimetable ? data.hisTimetable[1].row : [];
   }
   async function fetchTimetable(from, to) {
-    // NEIS는 TI_FROM_YMD~TI_TO_YMD 날짜 범위만으로 각 날짜에 맞는 학기 데이터를
-    // 정확히 반환해준다. AY/SEM을 우리가 추측해서 같이 보내면, 그 주간에 학기가
-    // 바뀌는 경우(예: 방학 전/후로 한 주 안에 1·2학기가 섞여 있는 경우) 일부
-    // 요일만 해당 학기로 걸려서 나머지 요일 데이터가 통째로 누락될 수 있다.
-    // 그래서 기본은 AY/SEM 없이 조회하고, 혹시 그 결과가 완전히 비어 있을 때만
-    // (드문 예외 상황 대비) 추정 학기를 명시해서 한 번 더 시도한다.
     const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
       + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
       + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
@@ -359,7 +353,7 @@
     if (rows.length === 0) {
       const ay = getAY(baseMonday);
       const sem = getSem(baseMonday);
-      rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`); // 추정 학기로 재시도
+      rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`);
     }
     return rows;
   }
@@ -425,7 +419,6 @@
     rows.forEach(r => {
       const d = r.ALL_TI_YMD;
       if (!byDate[d]) byDate[d] = {};
-      // 같은 교시가 중복으로 내려오는 경우 LOAD_DTM이 더 최신인 값을 사용
       const existing = byDate[d][r.PERIO];
       if (!existing || (r.LOAD_DTM || '') >= (existing.LOAD_DTM || '')) {
         byDate[d][r.PERIO] = r;
@@ -458,3 +451,4 @@
 </script>
 </body>
 </html>
+
