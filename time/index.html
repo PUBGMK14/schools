@@ -230,6 +230,16 @@
     }
     .period-subj { flex: 1; font-weight: 500; }
     .period-item.empty .period-subj { color: var(--text-muted); }
+    .period-item.overridden { background: #fff8e6; margin: 0 -14px; padding: 6px 14px; }
+    .override-tag {
+      font-size: 0.62rem;
+      color: #b8860b;
+      background: #fff2c9;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
 
     .meal-info {
       margin-top: 10px;
@@ -385,20 +395,54 @@
   <div>데이터 출처: <a href="https://open.neis.go.kr" target="_blank">NEIS 교육정보 개방 포털</a> · 학성고등학교 시간표</div>
 </footer>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEFHdRAEh7HoDoq4_O_RVyuNQceSAEaQg",
+    authDomain: "pubginfo-time.firebaseapp.com",
+    databaseURL: "https://pubginfo-time-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "pubginfo-time",
+    storageBucket: "pubginfo-time.firebasestorage.app",
+    messagingSenderId: "897626485020",
+    appId: "1:897626485020:web:246ac8e1a9071deb58cad9",
+    measurementId: "G-8BRTF75VVS"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
   // ─── CONFIG ──────────────────────────────────────
   const KEY   = 'ad7ef12adeb548f89194a4563ef8ede0';
   const OFCDC = 'H10';
   const SCHUL = '7480029';
   const GRADE = '3';
   const CLASS_NM = '9';
+  const OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
   // ─────────────────────────────────────────────────
 
   const DAY_KO = ['일','월','화','수','목','금','토'];
+  const DOW_TO_ID = { 1:'mon', 2:'tue', 3:'wed', 4:'thu', 5:'fri' };
 
   let baseMonday   = getMonday(new Date());
   let carouselIdx  = 0;
   let touchStartX  = 0;
+  let overrideData = {}; // { mon: {1: '국어', ...}, ... }
+
+  // ── FIREBASE ──────────────────────────────────────
+  async function loadOverrides() {
+    try {
+      const snap = await get(ref(db, OVERRIDE_PATH));
+      overrideData = snap.exists() ? snap.val() : {};
+    } catch (e) {
+      overrideData = {};
+      console.error('오버라이드 불러오기 실패', e);
+    }
+  }
+  function getOverride(day, period) {
+    const dayId = DOW_TO_ID[day.getDay()];
+    return overrideData?.[dayId]?.[period];
+  }
 
   // ── UTILS ─────────────────────────────────────────
   function getMonday(d) {
@@ -420,6 +464,13 @@
     return Array.from({length:5}, (_,i) => {
       const d = new Date(monday); d.setDate(d.getDate()+i); return d;
     });
+  }
+  function getAY(d) { return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear() - 1; }
+  function getSem(d) {
+    const m = d.getMonth() + 1;
+    // 3~8월 = 1학기, 9월~다음해 2월 = 2학기
+    // (여름방학이 8월 말까지 걸쳐있는 학교가 많아 8월은 학교 학사일정에 따라 다를 수 있음)
+    return (m >= 3 && m <= 8) ? '1' : '2';
   }
   function fmtLoadDtm(s) {
     if (!s || s.length < 8) return '';
@@ -448,12 +499,14 @@
 
   // ── API ───────────────────────────────────────────
   async function fetchTimetable(from, to) {
-    // 학기(AY/SEM)는 넘기지 않는다 - 날짜 범위(TI_FROM_YMD~TI_TO_YMD)만으로
-    // 조회하면 학기 전환 시점과 무관하게 해당 주간 데이터가 그대로 나온다.
+    // AY/SEM을 명시하지 않으면 NEIS가 엉뚱한 학기 데이터를 섞어 줄 수 있어
+    // 조회 기준일(주의 월요일)로 학기를 계산해 명시적으로 요청한다.
+    const ay = getAY(baseMonday);
+    const sem = getSem(baseMonday);
     const url = `https://open.neis.go.kr/hub/hisTimetable`
       + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
       + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
-      + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
+      + `&AY=${ay}&SEM=${sem}&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
       + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
     const resp = await fetch(url);
     const data = await resp.json();
@@ -485,11 +538,15 @@
       const sorted = [...periods].sort((a,b) => parseInt(a.PERIO) - parseInt(b.PERIO));
       let latestLoad = '';
       sorted.forEach(p => {
+        const override = getOverride(day, p.PERIO);
+        const hasOverride = override !== undefined && override !== '';
+        const subj = hasOverride ? override : (p.ITRT_CNTNT || '-');
+
         const div = document.createElement('div');
-        div.className = 'period-item';
+        div.className = 'period-item' + (hasOverride ? ' overridden' : '');
         div.innerHTML = `
           <div class="period-num">${p.PERIO}</div>
-          <div class="period-subj">${p.ITRT_CNTNT || '-'}</div>`;
+          <div class="period-subj">${subj}${hasOverride ? ' <span class="override-tag">변경</span>' : ''}</div>`;
         body.appendChild(div);
         if (p.LOAD_DTM && p.LOAD_DTM > latestLoad) latestLoad = p.LOAD_DTM;
       });
@@ -598,6 +655,7 @@
 
     let rows = [];
     try {
+      await loadOverrides();
       rows = await fetchTimetable(toYMD(days[0]), toYMD(days[4]));
     } catch(e) {
       const err = `<div class="state-box">⚠️ 정보를 불러오지 못했습니다.</div>`;
@@ -609,8 +667,16 @@
     const byDate = {};
     rows.forEach(r => {
       const d = r.ALL_TI_YMD;
-      if (!byDate[d]) byDate[d] = [];
-      byDate[d].push(r);
+      if (!byDate[d]) byDate[d] = {};
+      // 같은 교시가 중복으로 내려오는 경우 LOAD_DTM이 더 최신인 값을 사용
+      const existing = byDate[d][r.PERIO];
+      if (!existing || (r.LOAD_DTM || '') >= (existing.LOAD_DTM || '')) {
+        byDate[d][r.PERIO] = r;
+      }
+    });
+    // buildCard가 기대하는 배열 형태로 변환
+    Object.keys(byDate).forEach(d => {
+      byDate[d] = Object.values(byDate[d]);
     });
 
     // 데스크탑 그리드
@@ -637,7 +703,7 @@
 
   // ── INIT ──────────────────────────────────────────
   updateTodayDisplay();
-  loadWeek();
+  loadOverrides().then(loadWeek);
 </script>
 </body>
 </html>
