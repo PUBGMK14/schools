@@ -475,22 +475,23 @@
     const from = toYMD(monday), to = toYMD(friday);
 
     try {
-      // AY/SEM을 명시하면 정확도가 올라가지만, 학교마다 2학기 시작 시점이 달라
-      // (8월 중순부터 2학기인 경우도 흔함) 우리가 계산한 학기가 실제와 다르면
-      // NEIS가 0건을 반환할 수 있다. 그래서 AY/SEM을 지정해 먼저 시도하고,
-      // 결과가 없으면 AY/SEM 없이(NEIS가 날짜만으로 자동 판별하도록) 재시도한다.
-      const ay = getAY(monday);
-      const sem = getSem(monday);
+      // NEIS는 TI_FROM_YMD~TI_TO_YMD 날짜 범위만으로 각 날짜에 맞는 학기 데이터를
+      // 정확히 반환해준다. AY/SEM을 우리가 추측해서 같이 보내면, 그 주간에 학기가
+      // 바뀌는 경우(예: 방학 전/후로 한 주 안에 1·2학기가 섞여 있는 경우) 일부
+      // 요일만 해당 학기로 걸려서 나머지 요일 데이터가 통째로 누락될 수 있다.
+      // 그래서 기본은 AY/SEM 없이 조회하고, 혹시 그 결과가 완전히 비어 있을 때만
+      // (드문 예외 상황 대비) 추정 학기를 명시해서 한 번 더 시도한다.
       const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
         + `?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100`
         + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
         + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
         + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
-      const urlWithSem = `${baseUrl}&AY=${ay}&SEM=${sem}`;
 
-      let rows = await tryFetchRows(urlWithSem);
+      let rows = await tryFetchRows(baseUrl);
       if (rows.length === 0) {
-        rows = await tryFetchRows(baseUrl); // 학기 미지정 재시도
+        const ay = getAY(monday);
+        const sem = getSem(monday);
+        rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`); // 추정 학기로 재시도
       }
 
       baseData = {};
