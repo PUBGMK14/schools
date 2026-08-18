@@ -252,7 +252,6 @@
     .legend { font-size: 0.72rem; color: var(--text-muted); margin: 12px 24px 20px; display: flex; align-items: center; gap: 6px; }
     .legend .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff7e6; border: 1.5px solid var(--warn); display: inline-block; }
 
-    /* placeholder panels */
     .placeholder-panel {
       max-width: 1000px; margin: 60px auto; text-align: center; color: var(--text-muted);
     }
@@ -262,7 +261,6 @@
 </head>
 <body>
 
-<!-- ── LOGIN SCREEN ── -->
 <div class="login-wrap" id="login-screen">
   <div class="login-box">
     <div class="login-icon-wrap">
@@ -286,7 +284,6 @@
   </div>
 </div>
 
-<!-- ── ADMIN APP SHELL ── -->
 <div class="app-shell" id="app-shell">
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -349,7 +346,7 @@
 
         <div class="hint-box">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <span>NEIS 원본 시간표를 불러온 뒤, 칸을 직접 수정하면 <b>이 칸만</b> 학생 페이지에 덮어써서 보입니다. 원본 그대로 되돌리려면 칸을 비우고 저장하세요.</span>
+          <span>선택한 기준 날짜가 속한 주차별로 수정 내용이 독립 저장됩니다. 날짜를 변경하면 해당 주의 수정사항을 불러오거나 저장할 수 있습니다.</span>
         </div>
         <div class="status-line" id="status"></div>
 
@@ -383,8 +380,14 @@
   const SCHUL = '7480029';
   const GRADE = '3';
   const CLASS_NM = '9';
-  const ADMIN_PW = '1234';   // 관리자 비밀번호 (필요시 이 값만 바꾸면 됨)
-  const OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+  const ADMIN_PW = '1234';
+  
+  const BASE_OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+
+  function getOverridePath(dateObj) {
+    const monday = getMonday(dateObj);
+    return `${BASE_OVERRIDE_PATH}_${toYMD(monday)}`;
+  }
   // ─────────────────────────────────────────────────
 
   const DAYS = [
@@ -396,8 +399,8 @@
   ];
   const PERIODS = [1,2,3,4,5,6,7];
 
-  let baseData = {};      // NEIS 원본: { mon: {1: '국어', ...}, ... }
-  let overrideData = {};  // 오버라이드: 동일 구조 (문자열 값)
+  let baseData = {};      
+  let overrideData = {};  
 
   // ── LOGIN ─────────────────────────────────────────
   document.getElementById('login-btn').addEventListener('click', tryLogin);
@@ -428,7 +431,6 @@
   function getAY(d) { return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear() - 1; }
   function getSem(d) {
     const m = d.getMonth() + 1;
-    // 3~8월 = 1학기, 9월~다음해 2월 = 2학기
     return (m >= 3 && m <= 8) ? '1' : '2';
   }
   function setStatus(msg, type) {
@@ -448,16 +450,23 @@
     const today = new Date();
     dateInput.value = today.toISOString().slice(0,10);
 
-    document.getElementById('fetch-btn').addEventListener('click', fetchFromNeis);
+    dateInput.addEventListener('change', () => {
+      loadOverridesAndFetch();
+    });
+
+    document.getElementById('fetch-btn').addEventListener('click', loadOverridesAndFetch);
     document.getElementById('save-btn').addEventListener('click', saveOverrides);
 
-    loadOverridesThenFetch();
+    loadOverridesAndFetch();
   }
 
-  async function loadOverridesThenFetch() {
+  async function loadOverridesAndFetch() {
     setStatus('저장된 수정값 불러오는 중...');
+    const refDate = new Date(document.getElementById('ref-date').value || new Date());
+    const path = getOverridePath(refDate);
+
     try {
-      const snap = await get(ref(db, OVERRIDE_PATH));
+      const snap = await get(ref(db, path));
       overrideData = snap.exists() ? snap.val() : {};
     } catch (e) {
       overrideData = {};
@@ -475,12 +484,6 @@
     const from = toYMD(monday), to = toYMD(friday);
 
     try {
-      // NEIS는 TI_FROM_YMD~TI_TO_YMD 날짜 범위만으로 각 날짜에 맞는 학기 데이터를
-      // 정확히 반환해준다. AY/SEM을 우리가 추측해서 같이 보내면, 그 주간에 학기가
-      // 바뀌는 경우(예: 방학 전/후로 한 주 안에 1·2학기가 섞여 있는 경우) 일부
-      // 요일만 해당 학기로 걸려서 나머지 요일 데이터가 통째로 누락될 수 있다.
-      // 그래서 기본은 AY/SEM 없이 조회하고, 혹시 그 결과가 완전히 비어 있을 때만
-      // (드문 예외 상황 대비) 추정 학기를 명시해서 한 번 더 시도한다.
       const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
         + `?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100`
         + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
@@ -491,11 +494,11 @@
       if (rows.length === 0) {
         const ay = getAY(monday);
         const sem = getSem(monday);
-        rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`); // 추정 학기로 재시도
+        rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`);
       }
 
       baseData = {};
-      const loadDtmMap = {}; // 같은 교시 중복 시 최신 LOAD_DTM만 채택
+      const loadDtmMap = {}; 
       DAYS.forEach(d => baseData[d.id] = {});
 
       rows.forEach(r => {
@@ -533,7 +536,7 @@
       html += `<tr><td class="period-cell">${p}</td>`;
       DAYS.forEach(d => {
         const base = baseData[d.id]?.[p] ?? '';
-        const ov = overrideData[d.id]?.[p]; // 문자열 값 (또는 undefined)
+        const ov = overrideData[d.id]?.[p]; 
         const hasOverride = ov !== undefined && ov !== '';
         const value = hasOverride ? ov : base;
         html += `<td class="cell${hasOverride ? ' overridden' : ''}" data-day="${d.id}" data-period="${p}">
@@ -545,7 +548,6 @@
     html += '</tbody></table>';
     holder.innerHTML = html;
 
-    // 입력값 변경 시 오버라이드 표시 갱신
     holder.querySelectorAll('input').forEach(input => {
       input.addEventListener('input', () => {
         const td = input.closest('td');
@@ -562,13 +564,15 @@
 
   // ── SAVE ──────────────────────────────────────────
   async function saveOverrides() {
+    const refDate = new Date(document.getElementById('ref-date').value || new Date());
+    const path = getOverridePath(refDate);
+
     const newOverrides = {};
     document.querySelectorAll('#table-holder td.cell').forEach(td => {
       const day = td.dataset.day, period = td.dataset.period;
       const input = td.querySelector('input');
       const base = baseData[day]?.[period] ?? '';
       const val = input.value;
-      // 원본과 다르고 비어있지 않을 때만 오버라이드로 저장 (문자열 그대로 저장 → 학생 페이지 읽기 형식과 일치)
       if (val !== base && val !== '') {
         if (!newOverrides[day]) newOverrides[day] = {};
         newOverrides[day][period] = val;
@@ -577,11 +581,11 @@
 
     setStatus('저장 중...');
     try {
-      await set(ref(db, OVERRIDE_PATH), newOverrides);
+      await set(ref(db, path), newOverrides);
       overrideData = newOverrides;
       const now = new Date();
       document.getElementById('saved-at').textContent = `마지막 저장: ${now.toLocaleString()}`;
-      setStatus('저장 완료! 학생 페이지에 반영되었습니다.', 'ok');
+      setStatus('저장 완료! 해당 주차 학생 페이지에 반영되었습니다.', 'ok');
     } catch (e) {
       setStatus('저장 실패. Firebase 규칙 또는 네트워크를 확인해주세요.', 'err');
       console.error(e);
@@ -590,3 +594,4 @@
 </script>
 </body>
 </html>
+
