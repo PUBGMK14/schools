@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학성고등학교 시간표 관리자</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --accent: #c0392b;
+      --accent-light: #e74c3c;
+      --accent-muted: #fdecea;
+      --text: #1a1209;
+      --text-sub: #6b5b45;
+      --text-muted: #a89070;
+      --border: #ede3d5;
+      --shadow: 0 2px 16px rgba(60,30,10,0.07);
+      --ok: #2f7d4f;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    .login-wrap {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .login-box .logo { font-family: 'Nanum Myeongjo', serif; font-size: 1.4rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+    .login-box .sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 24px; }
+    .login-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+    .login-box input:focus { outline: none; border-color: var(--accent); }
+    .login-box button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .login-box button:hover { background: var(--accent-light); }
+    .login-err { color: var(--accent); font-size: 0.78rem; margin-top: 10px; min-height: 16px; }
+
+    /* ── ADMIN HEADER ── */
+    header {
+      background: var(--accent);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(192,57,43,0.18);
+    }
+    .header-inner {
+      max-width: 1000px; margin: 0 auto;
+      padding: 16px 24px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-ko { font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; font-weight: 800; color: #fff; }
+    .logo-sub { font-size: 0.72rem; color: rgba(255,255,255,0.75); }
+    .logout-btn {
+      margin-left: auto;
+      background: rgba(255,255,255,0.18);
+      color: #fff; border: none; border-radius: 999px;
+      padding: 6px 16px; font-size: 0.78rem; cursor: pointer;
+      font-family: inherit;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+    /* ── PANEL ── */
+    .panel {
+      max-width: 1000px; margin: 24px auto; padding: 0 24px 60px;
+    }
+    .toolbar {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 0.72rem; color: var(--text-sub); font-weight: 600; }
+    .field input, .field select {
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 8px 10px; font-size: 0.9rem; font-family: inherit;
+      width: 90px;
+    }
+    .toolbar .actions { margin-left: auto; display: flex; gap: 8px; }
+    .btn {
+      border: none; border-radius: 8px; padding: 10px 18px;
+      font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text-sub); }
+    .btn-outline:hover { background: var(--bg); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+
+    .status-line { font-size: 0.78rem; color: var(--text-muted); margin: 4px 2px 14px; min-height: 16px; }
+    .status-line.ok { color: var(--ok); }
+    .status-line.err { color: var(--accent); }
+
+    .hint-box {
+      background: var(--accent-muted);
+      border: 1px solid #f5d0cb;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    th, td { border: 1px solid var(--border); text-align: center; }
+    th {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 10px 6px;
+    }
+    td.period-cell {
+      background: var(--bg);
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 0.8rem;
+      width: 46px;
+    }
+    td.cell { padding: 0; position: relative; }
+    td.cell input {
+      width: 100%; height: 100%;
+      min-height: 42px;
+      border: none;
+      text-align: center;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: transparent;
+      padding: 8px 4px;
+    }
+    td.cell input:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-muted); }
+    td.cell.overridden { background: #fff8e6; }
+    td.cell.overridden::after {
+      content: '●';
+      position: absolute;
+      top: 2px; right: 4px;
+      font-size: 6px;
+      color: #d4a017;
+    }
+
+    .legend { font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+    .legend .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff8e6; border: 1.5px solid #d4a017; display: inline-block; }
+  </style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div class="login-wrap" id="login-screen">
+  <div class="login-box">
+    <div class="logo">🔐 시간표 관리자</div>
+    <div class="sub">학성고등학교 3학년 9반</div>
+    <input type="password" id="pw-input" placeholder="관리자 비밀번호" />
+    <button id="login-btn">로그인</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ── ADMIN SCREEN ── -->
+<div id="admin-screen" style="display:none;">
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="logo-sub">학성고등학교</div>
+        <div class="logo-ko">📘 시간표 관리자</div>
+      </div>
+      <button class="logout-btn" id="logout-btn">로그아웃</button>
+    </div>
+  </header>
+
+  <div class="panel">
+    <div class="hint-box">
+      NEIS 원본 시간표를 불러온 뒤, 칸을 직접 수정하면 <b>이 칸만</b> 학생 페이지에 덮어써서 보입니다.
+      원본 그대로 되돌리려면 칸을 비우고 저장하세요.
+    </div>
+
+    <div class="toolbar">
+      <div class="field">
+        <label>기준 날짜</label>
+        <input type="date" id="ref-date">
+      </div>
+      <div class="actions">
+        <button class="btn btn-outline" id="fetch-btn">☁️ NEIS에서 불러오기</button>
+        <button class="btn btn-primary" id="save-btn">💾 저장 (학생 페이지 반영)</button>
+      </div>
+    </div>
+    <div class="status-line" id="status"></div>
+
+    <div id="table-holder"></div>
+    <div class="legend"><span class="dot"></span> 수정(오버라이드)된 칸</div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEFHdRAEh7HoDoq4_O_RVyuNQceSAEaQg",
+    authDomain: "pubginfo-time.firebaseapp.com",
+    databaseURL: "https://pubginfo-time-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "pubginfo-time",
+    storageBucket: "pubginfo-time.firebasestorage.app",
+    messagingSenderId: "897626485020",
+    appId: "1:897626485020:web:246ac8e1a9071deb58cad9",
+    measurementId: "G-8BRTF75VVS"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ─── CONFIG ──────────────────────────────────────
+  const NEIS_KEY = 'ad7ef12adeb548f89194a4563ef8ede0';
+  const OFCDC = 'H10';
+  const SCHUL = '7480029';
+  const GRADE = '3';
+  const CLASS_NM = '9';
+  const ADMIN_PW = 'haksung2026';   // 관리자 비밀번호 (필요시 이 값만 바꾸면 됨)
+  const OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+  // ─────────────────────────────────────────────────
+
+  const DAYS = [
+    { id: 'mon', label: '월', dow: 1 },
+    { id: 'tue', label: '화', dow: 2 },
+    { id: 'wed', label: '수', dow: 3 },
+    { id: 'thu', label: '목', dow: 4 },
+    { id: 'fri', label: '금', dow: 5 },
+  ];
+  const PERIODS = [1,2,3,4,5,6,7];
+
+  let baseData = {};      // NEIS 원본: { mon: {1: '국어', ...}, ... }
+  let overrideData = {};  // 오버라이드: 동일 구조
+
+  // ── LOGIN ─────────────────────────────────────────
+  document.getElementById('login-btn').addEventListener('click', tryLogin);
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  function tryLogin() {
+    const pw = document.getElementById('pw-input').value;
+    if (pw === ADMIN_PW) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-screen').style.display = 'block';
+      initAdmin();
+    } else {
+      document.getElementById('login-err').textContent = '비밀번호가 올바르지 않습니다.';
+    }
+  }
+  document.getElementById('logout-btn').addEventListener('click', () => location.reload());
+
+  // ── UTIL ──────────────────────────────────────────
+  function getMonday(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    date.setDate(date.getDate() + (day === 0 ? -6 : 1 - day));
+    date.setHours(0,0,0,0);
+    return date;
+  }
+  function toYMD(d) {
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.textContent = msg;
+    el.className = 'status-line' + (type ? ' ' + type : '');
+  }
+
+  // ── INIT ──────────────────────────────────────────
+  function initAdmin() {
+    const dateInput = document.getElementById('ref-date');
+    const today = new Date();
+    dateInput.value = today.toISOString().slice(0,10);
+
+    document.getElementById('fetch-btn').addEventListener('click', fetchFromNeis);
+    document.getElementById('save-btn').addEventListener('click', saveOverrides);
+
+    loadOverridesThenFetch();
+  }
+
+  async function loadOverridesThenFetch() {
+    setStatus('저장된 수정값 불러오는 중...');
+    try {
+      const snap = await get(ref(db, OVERRIDE_PATH));
+      overrideData = snap.exists() ? snap.val() : {};
+    } catch (e) {
+      overrideData = {};
+    }
+    await fetchFromNeis();
+  }
+
+  // ── NEIS FETCH ────────────────────────────────────
+  async function fetchFromNeis() {
+    setStatus('NEIS에서 시간표 불러오는 중...');
+    const refDate = new Date(document.getElementById('ref-date').value || new Date());
+    const monday = getMonday(refDate);
+    const friday = new Date(monday); friday.setDate(friday.getDate() + 4);
+
+    const from = toYMD(monday), to = toYMD(friday);
+    const url = `https://open.neis.go.kr/hub/hisTimetable`
+      + `?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100`
+      + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
+      + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
+      + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
+
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      const rows = data.hisTimetable ? data.hisTimetable[1].row : [];
+
+      baseData = {};
+      DAYS.forEach(d => baseData[d.id] = {});
+
+      rows.forEach(r => {
+        const d = new Date(
+          parseInt(r.ALL_TI_YMD.slice(0,4)),
+          parseInt(r.ALL_TI_YMD.slice(4,6)) - 1,
+          parseInt(r.ALL_TI_YMD.slice(6,8))
+        );
+        const dayObj = DAYS.find(x => x.dow === d.getDay());
+        if (dayObj) {
+          baseData[dayObj.id][r.PERIO] = r.ITRT_CNTNT || '';
+        }
+      });
+
+      renderTable();
+      setStatus('불러오기 완료. 칸을 수정한 뒤 저장을 눌러주세요.', 'ok');
+    } catch (e) {
+      setStatus('NEIS 조회 실패. 날짜를 확인하거나 잠시 후 다시 시도해주세요.', 'err');
+      console.error(e);
+    }
+  }
+
+  // ── RENDER ────────────────────────────────────────
+  function renderTable() {
+    const holder = document.getElementById('table-holder');
+    let html = '<table><thead><tr><th>교시</th>';
+    DAYS.forEach(d => html += `<th>${d.label}요일</th>`);
+    html += '</tr></thead><tbody>';
+
+    PERIODS.forEach(p => {
+      html += `<tr><td class="period-cell">${p}</td>`;
+      DAYS.forEach(d => {
+        const base = baseData[d.id]?.[p] ?? '';
+        const ov = overrideData[d.id]?.[p];
+        const hasOverride = ov !== undefined && ov !== '';
+        const value = hasOverride ? ov : base;
+        html += `<td class="cell${hasOverride ? ' overridden' : ''}" data-day="${d.id}" data-period="${p}">
+          <input type="text" value="${escapeAttr(value)}" placeholder="-" />
+        </td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    holder.innerHTML = html;
+
+    // 입력값 변경 시 오버라이드 표시 갱신
+    holder.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', () => {
+        const td = input.closest('td');
+        const day = td.dataset.day, period = td.dataset.period;
+        const base = baseData[day]?.[period] ?? '';
+        td.classList.toggle('overridden', input.value !== base && input.value !== '');
+      });
+    });
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+
+  // ── SAVE ──────────────────────────────────────────
+  async function saveOverrides() {
+    const newOverrides = {};
+    const now = new Date().toISOString();
+    document.querySelectorAll('#table-holder td.cell').forEach(td => {
+      const day = td.dataset.day, period = td.dataset.period;
+      const input = td.querySelector('input');
+      const base = baseData[day]?.[period] ?? '';
+      const val = input.value;
+      // 원본과 다르고 비어있지 않을 때만 오버라이드로 저장 (값 + 저장 시각)
+      if (val !== base && val !== '') {
+        if (!newOverrides[day]) newOverrides[day] = {};
+        newOverrides[day][period] = { value: val, updatedAt: now };
+      }
+    });
+
+    setStatus('저장 중...');
+    try {
+      await set(ref(db, OVERRIDE_PATH), newOverrides);
+      overrideData = newOverrides;
+      setStatus('저장 완료! 학생 페이지에 반영되었습니다.', 'ok');
+    } catch (e) {
+      setStatus('저장 실패. Firebase 규칙 또는 네트워크를 확인해주세요.', 'err');
+      console.error(e);
+    }
+  }
+</script>
+</body>
+</html>
