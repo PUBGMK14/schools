@@ -6,114 +6,184 @@
   <title>학성고등학교 시간표 관리자</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #faf7f2;
+      --bg: #f4f6fb;
+      --sidebar: #0f172a;
+      --sidebar-hover: #1e293b;
       --card: #ffffff;
-      --accent: #c0392b;
-      --accent-light: #e74c3c;
-      --accent-muted: #fdecea;
-      --text: #1a1209;
-      --text-sub: #6b5b45;
-      --text-muted: #a89070;
-      --border: #ede3d5;
-      --shadow: 0 2px 16px rgba(60,30,10,0.07);
-      --ok: #2f7d4f;
+      --accent: #2563eb;
+      --accent-light: #3b82f6;
+      --accent-muted: #eaf1ff;
+      --text: #1e293b;
+      --text-sub: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+      --shadow-lg: 0 10px 30px rgba(15,23,42,0.10);
+      --ok: #16a34a;
+      --warn: #d97706;
+      --danger: #dc2626;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    button, input, select { font-family: inherit; }
+    svg { display: block; }
 
     /* ── LOGIN ── */
     .login-wrap {
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       padding: 20px;
+      background: radial-gradient(circle at 30% 20%, #1e293b, #0f172a 70%);
     }
     .login-box {
       background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      padding: 36px 32px;
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+      padding: 40px 34px;
       width: 100%;
-      max-width: 360px;
-      text-align: center;
+      max-width: 380px;
     }
-    .login-box .logo { font-family: 'Nanum Myeongjo', serif; font-size: 1.4rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
-    .login-box .sub { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 24px; }
+    .login-icon-wrap { display: flex; justify-content: center; margin-bottom: 20px; }
+    .login-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--accent-muted);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent);
+    }
+    .login-box h1 { font-size: 1.25rem; font-weight: 700; text-align: center; color: var(--text); margin-bottom: 4px; }
+    .login-box .sub { font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-bottom: 26px; }
+    .field-group { margin-bottom: 16px; }
+    .field-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-sub); margin-bottom: 6px; }
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
     .login-box input {
       width: 100%;
-      padding: 12px 14px;
+      padding: 11px 12px 11px 38px;
       border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      margin-bottom: 12px;
+      border-radius: 9px;
+      font-size: 0.92rem;
+      background: #f8fafc;
     }
-    .login-box input:focus { outline: none; border-color: var(--accent); }
-    .login-box button {
+    .login-box input:focus { outline: none; border-color: var(--accent); background: #fff; }
+    .login-box button.submit {
       width: 100%;
       background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 9px;
       padding: 12px;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
-      font-family: inherit;
+      margin-top: 6px;
+      transition: background 0.15s;
     }
-    .login-box button:hover { background: var(--accent-light); }
-    .login-err { color: var(--accent); font-size: 0.78rem; margin-top: 10px; min-height: 16px; }
+    .login-box button.submit:hover { background: var(--accent-light); }
+    .login-err { color: var(--danger); font-size: 0.78rem; margin-top: 12px; min-height: 16px; text-align: center; }
 
-    /* ── ADMIN HEADER ── */
-    header {
-      background: var(--accent);
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 12px rgba(192,57,43,0.18);
+    /* ── APP SHELL ── */
+    .app-shell { display: none; height: 100vh; overflow: hidden; }
+    .app-shell.visible { display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 250px; flex-shrink: 0;
+      background: var(--sidebar);
+      color: #fff;
+      display: flex; flex-direction: column;
     }
-    .header-inner {
-      max-width: 1000px; margin: 0 auto;
-      padding: 16px 24px;
-      display: flex; align-items: center; gap: 14px;
+    .sidebar-brand {
+      padding: 24px 22px;
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.05rem; font-weight: 800;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .logo-ko { font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; font-weight: 800; color: #fff; }
-    .logo-sub { font-size: 0.72rem; color: rgba(255,255,255,0.75); }
+    .sidebar-brand .brand-icon { color: var(--accent-light); }
+    .sidebar-nav { flex: 1; padding-top: 14px; }
+    .nav-item {
+      width: 100%;
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 22px;
+      background: none; border: none; border-left: 3px solid transparent;
+      color: rgba(255,255,255,0.65);
+      font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+    .nav-item.active {
+      background: rgba(37,99,235,0.18);
+      border-left-color: var(--accent-light);
+      color: #fff;
+    }
+    .nav-item.disabled { cursor: default; opacity: 0.45; }
+    .nav-item.disabled:hover { background: none; color: rgba(255,255,255,0.65); }
+    .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
     .logout-btn {
-      margin-left: auto;
-      background: rgba(255,255,255,0.18);
-      color: #fff; border: none; border-radius: 999px;
-      padding: 6px 16px; font-size: 0.78rem; cursor: pointer;
-      font-family: inherit;
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.8);
+      border: none; border-radius: 8px;
+      padding: 10px; font-size: 0.82rem; font-weight: 500;
+      cursor: pointer; transition: background 0.15s, color 0.15s;
     }
-    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+    .logout-btn:hover { background: var(--danger); color: #fff; }
 
-    /* ── PANEL ── */
-    .panel {
-      max-width: 1000px; margin: 24px auto; padding: 0 24px 60px;
-    }
-    .toolbar {
+    /* ── MAIN ── */
+    .main-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      height: 64px; flex-shrink: 0;
       background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
     }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .topbar-right .welcome { font-size: 0.82rem; color: var(--text-sub); }
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--accent-muted); color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem;
+    }
+    .content-scroll { flex: 1; overflow-y: auto; padding: 28px; }
+
+    /* ── PANEL CARD ── */
+    .panel-card {
+      max-width: 1000px; margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-toolbar {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #fbfcfe;
+      display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between;
+    }
+    .panel-toolbar .title-block h2 { font-size: 1.02rem; font-weight: 700; color: var(--text); }
+    .panel-toolbar .title-block .saved-at { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+    .toolbar-controls { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
     .field { display: flex; flex-direction: column; gap: 4px; }
     .field label { font-size: 0.72rem; color: var(--text-sub); font-weight: 600; }
-    .field input, .field select {
+    .field input[type="date"] {
       border: 1.5px solid var(--border); border-radius: 8px;
-      padding: 8px 10px; font-size: 0.9rem; font-family: inherit;
-      width: 90px;
+      padding: 8px 10px; font-size: 0.85rem; width: 148px;
     }
-    .toolbar .actions { margin-left: auto; display: flex; gap: 8px; }
     .btn {
-      border: none; border-radius: 8px; padding: 10px 18px;
-      font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
-      display: inline-flex; align-items: center; gap: 6px;
+      border: none; border-radius: 8px; padding: 10px 16px;
+      font-size: 0.84rem; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 7px;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
     }
     .btn-outline { background: #fff; border: 1.5px solid var(--border); color: var(--text-sub); }
     .btn-outline:hover { background: var(--bg); }
@@ -121,40 +191,39 @@
     .btn-primary:hover { background: var(--accent-light); }
     .btn:disabled { opacity: 0.5; cursor: default; }
 
-    .status-line { font-size: 0.78rem; color: var(--text-muted); margin: 4px 2px 14px; min-height: 16px; }
-    .status-line.ok { color: var(--ok); }
-    .status-line.err { color: var(--accent); }
-
     .hint-box {
+      margin: 18px 24px 0;
       background: var(--accent-muted);
-      border: 1px solid #f5d0cb;
+      border: 1px solid #cfe0fd;
       border-radius: 10px;
       padding: 12px 14px;
       font-size: 0.78rem;
       color: var(--text-sub);
-      margin-bottom: 16px;
       line-height: 1.6;
+      display: flex; gap: 8px; align-items: flex-start;
     }
+    .status-line { font-size: 0.78rem; color: var(--text-muted); margin: 12px 24px 0; min-height: 16px; }
+    .status-line.ok { color: var(--ok); }
+    .status-line.err { color: var(--danger); }
 
+    .table-wrap { padding: 18px 24px 26px; overflow-x: auto; }
     table {
-      width: 100%;
+      width: 100%; min-width: 620px;
       border-collapse: collapse;
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: var(--shadow);
     }
     th, td { border: 1px solid var(--border); text-align: center; }
     th {
-      background: var(--accent);
-      color: #fff;
+      background: #f8fafc;
+      color: var(--text-sub);
       font-size: 0.8rem;
       font-weight: 600;
       padding: 10px 6px;
     }
     td.period-cell {
-      background: var(--bg);
+      background: #fbfcfe;
       color: var(--text-sub);
       font-weight: 700;
       font-size: 0.8rem;
@@ -163,26 +232,32 @@
     td.cell { padding: 0; position: relative; }
     td.cell input {
       width: 100%; height: 100%;
-      min-height: 42px;
+      min-height: 44px;
       border: none;
       text-align: center;
       font-size: 0.85rem;
-      font-family: inherit;
       background: transparent;
       padding: 8px 4px;
     }
     td.cell input:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-muted); }
-    td.cell.overridden { background: #fff8e6; }
+    td.cell.overridden { background: #fff7e6; }
     td.cell.overridden::after {
       content: '●';
       position: absolute;
       top: 2px; right: 4px;
       font-size: 6px;
-      color: #d4a017;
+      color: var(--warn);
     }
 
-    .legend { font-size: 0.72rem; color: var(--text-muted); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
-    .legend .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff8e6; border: 1.5px solid #d4a017; display: inline-block; }
+    .legend { font-size: 0.72rem; color: var(--text-muted); margin: 12px 24px 20px; display: flex; align-items: center; gap: 6px; }
+    .legend .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff7e6; border: 1.5px solid var(--warn); display: inline-block; }
+
+    /* placeholder panels */
+    .placeholder-panel {
+      max-width: 1000px; margin: 60px auto; text-align: center; color: var(--text-muted);
+    }
+    .placeholder-panel svg { margin: 0 auto 14px; color: var(--text-muted); }
+    .placeholder-panel p { font-size: 0.88rem; }
   </style>
 </head>
 <body>
@@ -190,46 +265,98 @@
 <!-- ── LOGIN SCREEN ── -->
 <div class="login-wrap" id="login-screen">
   <div class="login-box">
-    <div class="logo">🔐 시간표 관리자</div>
-    <div class="sub">학성고등학교 3학년 9반</div>
-    <input type="password" id="pw-input" placeholder="관리자 비밀번호" />
-    <button id="login-btn">로그인</button>
+    <div class="login-icon-wrap">
+      <div class="login-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
+    <h1>관리자 시스템 로그인</h1>
+    <div class="sub">학성고등학교 3학년 9반 · 시간표 관리</div>
+
+    <div class="field-group">
+      <label>관리자 비밀번호</label>
+      <div class="input-icon-wrap">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6M15.5 7.5 18 5M12 11l3 3"/></svg>
+        <input type="password" id="pw-input" placeholder="••••••••" />
+      </div>
+    </div>
+
+    <button class="submit" id="login-btn">로그인</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ── ADMIN SCREEN ── -->
-<div id="admin-screen" style="display:none;">
-  <header>
-    <div class="header-inner">
-      <div>
-        <div class="logo-sub">학성고등학교</div>
-        <div class="logo-ko">📘 시간표 관리자</div>
-      </div>
-      <button class="logout-btn" id="logout-btn">로그아웃</button>
+<!-- ── ADMIN APP SHELL ── -->
+<div class="app-shell" id="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg class="brand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span>학성고 Admin</span>
     </div>
-  </header>
+    <nav class="sidebar-nav">
+      <button class="nav-item disabled" type="button" tabindex="-1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        <span>대시보드</span>
+      </button>
+      <button class="nav-item active" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>시간표 관리</span>
+      </button>
+      <button class="nav-item disabled" type="button" tabindex="-1">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
+        <span>시스템 설정</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logout-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>로그아웃</span>
+      </button>
+    </div>
+  </aside>
 
-  <div class="panel">
-    <div class="hint-box">
-      NEIS 원본 시간표를 불러온 뒤, 칸을 직접 수정하면 <b>이 칸만</b> 학생 페이지에 덮어써서 보입니다.
-      원본 그대로 되돌리려면 칸을 비우고 저장하세요.
+  <div class="main-col">
+    <div class="topbar">
+      <h1>시간표 관리</h1>
+      <div class="topbar-right">
+        <span class="welcome">최고관리자님 환영합니다.</span>
+        <div class="avatar">A</div>
+      </div>
     </div>
 
-    <div class="toolbar">
-      <div class="field">
-        <label>기준 날짜</label>
-        <input type="date" id="ref-date">
-      </div>
-      <div class="actions">
-        <button class="btn btn-outline" id="fetch-btn">☁️ NEIS에서 불러오기</button>
-        <button class="btn btn-primary" id="save-btn">💾 저장 (학생 페이지 반영)</button>
+    <div class="content-scroll">
+      <div class="panel-card">
+        <div class="panel-toolbar">
+          <div class="title-block">
+            <h2>3학년 9반 주간 시간표</h2>
+            <div class="saved-at" id="saved-at"></div>
+          </div>
+          <div class="toolbar-controls">
+            <div class="field">
+              <label>기준 날짜</label>
+              <input type="date" id="ref-date">
+            </div>
+            <button class="btn btn-outline" id="fetch-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.9A7 7 0 1 1 15.7 8h1.3a4.5 4.5 0 0 1 0 9H6a3.5 3.5 0 0 1-2-3.1z"/><path d="M12 12v6M9.5 15.5 12 18l2.5-2.5"/></svg>
+              NEIS에서 불러오기
+            </button>
+            <button class="btn btn-primary" id="save-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              저장 및 서비스 반영
+            </button>
+          </div>
+        </div>
+
+        <div class="hint-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>NEIS 원본 시간표를 불러온 뒤, 칸을 직접 수정하면 <b>이 칸만</b> 학생 페이지에 덮어써서 보입니다. 원본 그대로 되돌리려면 칸을 비우고 저장하세요.</span>
+        </div>
+        <div class="status-line" id="status"></div>
+
+        <div class="table-wrap" id="table-holder"></div>
+        <div class="legend"><span class="dot"></span> 수정(오버라이드)된 칸</div>
       </div>
     </div>
-    <div class="status-line" id="status"></div>
-
-    <div id="table-holder"></div>
-    <div class="legend"><span class="dot"></span> 수정(오버라이드)된 칸</div>
   </div>
 </div>
 
@@ -256,7 +383,7 @@
   const SCHUL = '7480029';
   const GRADE = '3';
   const CLASS_NM = '9';
-  const ADMIN_PW = 'haksung2026';   // 관리자 비밀번호 (필요시 이 값만 바꾸면 됨)
+  const ADMIN_PW = '1234';   // 관리자 비밀번호 (필요시 이 값만 바꾸면 됨)
   const OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
   // ─────────────────────────────────────────────────
 
@@ -270,7 +397,7 @@
   const PERIODS = [1,2,3,4,5,6,7];
 
   let baseData = {};      // NEIS 원본: { mon: {1: '국어', ...}, ... }
-  let overrideData = {};  // 오버라이드: 동일 구조
+  let overrideData = {};  // 오버라이드: 동일 구조 (문자열 값)
 
   // ── LOGIN ─────────────────────────────────────────
   document.getElementById('login-btn').addEventListener('click', tryLogin);
@@ -279,7 +406,7 @@
     const pw = document.getElementById('pw-input').value;
     if (pw === ADMIN_PW) {
       document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-screen').style.display = 'block';
+      document.getElementById('app-shell').classList.add('visible');
       initAdmin();
     } else {
       document.getElementById('login-err').textContent = '비밀번호가 올바르지 않습니다.';
@@ -297,6 +424,12 @@
   }
   function toYMD(d) {
     return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function getAY(d) { return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear() - 1; }
+  function getSem(d) {
+    const m = d.getMonth() + 1;
+    // 3~8월 = 1학기, 9월~다음해 2월 = 2학기
+    return (m >= 3 && m <= 8) ? '1' : '2';
   }
   function setStatus(msg, type) {
     const el = document.getElementById('status');
@@ -335,10 +468,14 @@
     const friday = new Date(monday); friday.setDate(friday.getDate() + 4);
 
     const from = toYMD(monday), to = toYMD(friday);
+    // AY/SEM을 명시하지 않으면 NEIS가 엉뚱한 학기 데이터를 섞어 줄 수 있어
+    // 조회 기준일(주의 월요일)로 학기를 계산해 명시적으로 요청한다.
+    const ay = getAY(monday);
+    const sem = getSem(monday);
     const url = `https://open.neis.go.kr/hub/hisTimetable`
       + `?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=100`
       + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
-      + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
+      + `&AY=${ay}&SEM=${sem}&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
       + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
 
     try {
@@ -347,6 +484,7 @@
       const rows = data.hisTimetable ? data.hisTimetable[1].row : [];
 
       baseData = {};
+      const loadDtmMap = {}; // 같은 교시 중복 시 최신 LOAD_DTM만 채택
       DAYS.forEach(d => baseData[d.id] = {});
 
       rows.forEach(r => {
@@ -356,8 +494,12 @@
           parseInt(r.ALL_TI_YMD.slice(6,8))
         );
         const dayObj = DAYS.find(x => x.dow === d.getDay());
-        if (dayObj) {
+        if (!dayObj) return;
+        const key = `${dayObj.id}-${r.PERIO}`;
+        const existingDtm = loadDtmMap[key] || '';
+        if ((r.LOAD_DTM || '') >= existingDtm) {
           baseData[dayObj.id][r.PERIO] = r.ITRT_CNTNT || '';
+          loadDtmMap[key] = r.LOAD_DTM || '';
         }
       });
 
@@ -380,7 +522,7 @@
       html += `<tr><td class="period-cell">${p}</td>`;
       DAYS.forEach(d => {
         const base = baseData[d.id]?.[p] ?? '';
-        const ov = overrideData[d.id]?.[p];
+        const ov = overrideData[d.id]?.[p]; // 문자열 값 (또는 undefined)
         const hasOverride = ov !== undefined && ov !== '';
         const value = hasOverride ? ov : base;
         html += `<td class="cell${hasOverride ? ' overridden' : ''}" data-day="${d.id}" data-period="${p}">
@@ -410,16 +552,15 @@
   // ── SAVE ──────────────────────────────────────────
   async function saveOverrides() {
     const newOverrides = {};
-    const now = new Date().toISOString();
     document.querySelectorAll('#table-holder td.cell').forEach(td => {
       const day = td.dataset.day, period = td.dataset.period;
       const input = td.querySelector('input');
       const base = baseData[day]?.[period] ?? '';
       const val = input.value;
-      // 원본과 다르고 비어있지 않을 때만 오버라이드로 저장 (값 + 저장 시각)
+      // 원본과 다르고 비어있지 않을 때만 오버라이드로 저장 (문자열 그대로 저장 → 학생 페이지 읽기 형식과 일치)
       if (val !== base && val !== '') {
         if (!newOverrides[day]) newOverrides[day] = {};
-        newOverrides[day][period] = { value: val, updatedAt: now };
+        newOverrides[day][period] = val;
       }
     });
 
@@ -427,6 +568,8 @@
     try {
       await set(ref(db, OVERRIDE_PATH), newOverrides);
       overrideData = newOverrides;
+      const now = new Date();
+      document.getElementById('saved-at').textContent = `마지막 저장: ${now.toLocaleString()}`;
       setStatus('저장 완료! 학생 페이지에 반영되었습니다.', 'ok');
     } catch (e) {
       setStatus('저장 실패. Firebase 규칙 또는 네트워크를 확인해주세요.', 'err');
