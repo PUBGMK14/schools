@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>학성고등학교 시간표</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf7f2;
+      --card: #ffffff;
+      --accent: #c0392b;
+      --accent-light: #e74c3c;
+      --accent-muted: #fdecea;
+      --text: #1a1209;
+      --text-sub: #6b5b45;
+      --text-muted: #a89070;
+      --border: #ede3d5;
+      --shadow: 0 2px 16px rgba(60,30,10,0.07);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-weight: 300;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--accent);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(192,57,43,0.18);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+    }
+    .logo-ko {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .logo-sub {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.75);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .header-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      font-weight: 400;
+      white-space: nowrap;
+    }
+
+    /* ── WEEK NAV ── */
+    .week-nav {
+      max-width: 1100px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .week-label {
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+      text-align: center;
+    }
+    .nav-btn {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 1.1rem;
+      transition: all 0.18s;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+    .nav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .today-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 400;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.18s;
+      flex-shrink: 0;
+    }
+    .today-btn:hover { opacity: 0.85; }
+
+    /* ── CLASS INFO STRIP ── */
+    .class-info {
+      max-width: 1100px;
+      margin: 16px auto 0;
+      padding: 0 24px;
+    }
+    .class-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+    .class-badge b { color: var(--accent); font-weight: 500; }
+
+    /* ── WEEK TABLE ── */
+    .table-outer { max-width: 1100px; margin: 20px auto 0; padding: 0 24px 60px; }
+    .table-wrap { overflow-x: auto; border-radius: 14px; box-shadow: var(--shadow); background: var(--card); }
+    table.week-table { width: 100%; min-width: 640px; border-collapse: collapse; }
+    .week-table th, .week-table td { border: 1px solid var(--border); }
+    .week-table thead th {
+      background: #fbf6ee; color: var(--text-sub);
+      font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 0.92rem;
+      padding: 10px 4px 8px; text-align: center; line-height: 1.5;
+    }
+    .week-table thead th .th-date { font-family: 'Noto Sans KR', sans-serif; font-size: 0.7rem; font-weight: 400; color: var(--text-muted); display: block; }
+    .week-table thead th.today-col { background: var(--accent); color: #fff; }
+    .week-table thead th.today-col .th-date { color: rgba(255,255,255,0.8); }
+    .week-table thead th.period-head { width: 44px; background: #fbf6ee; }
+    .week-table td.period-cell { background: #fbf6ee; color: var(--text-sub); font-weight: 500; font-size: 0.8rem; text-align: center; width: 44px; }
+    .week-table td.subj-cell { padding: 8px 10px; font-size: 0.84rem; color: var(--text); vertical-align: middle; min-height: 56px; position: relative; }
+    .week-table td.subj-cell.today-col { background: var(--accent-muted); }
+    .week-table td.subj-cell.empty { color: var(--text-muted); text-align: center; }
+    .week-table td.subj-cell.overridden { background: #fff7d6; }
+    
+    .subj-name { font-weight: 400; line-height: 1.35; color: var(--text); }
+    .teacher-name { font-size: 0.67rem; color: #8c8279; margin-top: 2px; font-weight: 300; }
+
+    .override-tag { font-size: 0.58rem; color: #9a6b00; background: #ffe9a8; border-radius: 4px; padding: 1px 4px; font-weight: 500; margin-left: 4px; vertical-align: middle; }
+    .table-footnote { margin-top: 12px; font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .table-footnote .dot { width: 8px; height: 8px; border-radius: 50%; background: #fff7d6; border: 1.5px solid #d4a017; display: inline-block; }
+
+    /* ── LOADING ── */
+    .state-box { max-width: 1100px; margin: 40px auto; padding: 0 24px; text-align: center; color: var(--text-muted); }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ── */
+    footer { background: var(--text); color: rgba(255,255,255,0.5); text-align: center; font-size: 0.78rem; padding: 20px; font-weight: 300; }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+
+    @media (max-width: 767px) {
+      .header-inner { flex-wrap: wrap; padding: 14px 16px 12px; }
+      .logo-ko { font-size: 1.25rem; }
+      .header-badge { font-size: 0.72rem; padding: 4px 10px; }
+      .week-nav { padding: 0 16px; margin-top: 20px; }
+      .week-label { font-size: 1rem; }
+      .class-info { padding: 0 16px; }
+      .table-outer { padding: 0 16px 40px; }
+      .week-table td.subj-cell { font-size: 0.8rem; padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="logo-sub">학성고등학교</div>
+      <div class="logo-ko">📘 시간표</div>
+    </div>
+    <div class="header-badge" id="today-display"></div>
+  </div>
+</header>
+
+<div class="week-nav">
+  <button class="nav-btn" id="prev-btn">&#8592;</button>
+  <div class="week-label" id="week-label"></div>
+  <button class="nav-btn" id="next-btn">&#8594;</button>
+  <button class="today-btn" id="today-btn">오늘</button>
+</div>
+
+<div class="class-info">
+  <span class="class-badge"><b>3학년 9반</b> · <span id="term-display"></span></span>
+</div>
+
+<div class="table-outer" id="main-content">
+  <div class="state-box">
+    <div class="spinner"></div>
+    <div>시간표를 불러오는 중...</div>
+  </div>
+</div>
+
+<footer>
+  <div>데이터 출처: <a href="https://open.neis.go.kr" target="_blank">NEIS 교육정보 개방 포털</a> · 학성고등학교 시간표</div>
+</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEFHdRAEh7HoDoq4_O_RVyuNQceSAEaQg",
+    authDomain: "pubginfo-time.firebaseapp.com",
+    databaseURL: "https://pubginfo-time-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "pubginfo-time",
+    storageBucket: "pubginfo-time.firebasestorage.app",
+    messagingSenderId: "897626485020",
+    appId: "1:897626485020:web:246ac8e1a9071deb58cad9",
+    measurementId: "G-8BRTF75VVS"
+  };
+
+  let app, db;
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+  } catch (e) {
+    console.error("Firebase 초기화 에러:", e);
+  }
+
+  const KEY   = 'ad7ef12adeb548f89194a4563ef8ede0';
+  const OFCDC = 'H10';
+  const SCHUL = '7480029';
+  const GRADE = '3';
+  const CLASS_NM = '9';
+  
+  const BASE_OVERRIDE_PATH = `overrides/${OFCDC}_${SCHUL}_${GRADE}_${CLASS_NM}`;
+  const MAPPING_PATH = `settings/subjectTeachers`;
+
+  function getOverridePath(mondayDate) {
+    return `${BASE_OVERRIDE_PATH}_${toYMD(mondayDate)}`;
+  }
+
+  const DAY_KO = ['일','월','화','수','목','금','토'];
+  const DOW_TO_ID = { 1:'mon', 2:'tue', 3:'wed', 4:'thu', 5:'fri' };
+  const PERIODS = [1,2,3,4,5,6,7];
+
+  let baseMonday   = getMonday(new Date());
+  let overrideData = {}; 
+  let teacherMappings = {}; 
+
+  async function loadSettingsAndOverrides() {
+    if (!db) return;
+    try {
+      const [overrideSnap, mappingSnap] = await Promise.all([
+        get(ref(db, getOverridePath(baseMonday))),
+        get(ref(db, MAPPING_PATH))
+      ]);
+      overrideData = overrideSnap.exists() ? overrideSnap.val() : {};
+      teacherMappings = mappingSnap.exists() ? mappingSnap.val() : {};
+    } catch (e) {
+      overrideData = {};
+      teacherMappings = {};
+      console.error('데이터 불러오기 실패:', e);
+    }
+  }
+
+  function getOverride(day, period) {
+    const dayId = DOW_TO_ID[day.getDay()];
+    return overrideData?.[dayId]?.[period];
+  }
+
+  function getMonday(d) {
+    const date = new Date(d);
+    const day  = date.getDay();
+    date.setDate(date.getDate() + (day === 0 ? -6 : 1 - day));
+    date.setHours(0,0,0,0);
+    return date;
+  }
+  function toYMD(d) {
+    return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function fmt(d) { return `${d.getMonth()+1}/${d.getDate()}`; }
+  function isToday(d) {
+    const n = new Date();
+    return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
+  }
+  function getWeekDays(monday) {
+    return Array.from({length:5}, (_,i) => {
+      const d = new Date(monday); d.setDate(d.getDate()+i); return d;
+    });
+  }
+  function getAY(d) { return d.getMonth() >= 2 ? d.getFullYear() : d.getFullYear() - 1; }
+  function getSem(d) {
+    const m = d.getMonth() + 1;
+    return (m >= 3 && m <= 8) ? '1' : '2';
+  }
+
+  function updateTodayDisplay() {
+    const n = new Date();
+    const el = document.getElementById('today-display');
+    if (el) {
+      el.textContent = `${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 (${DAY_KO[n.getDay()]})`;
+    }
+  }
+  function updateWeekLabel(days) {
+    const f=days[0], l=days[4];
+    const el = document.getElementById('week-label');
+    if (el) {
+      el.textContent = `${f.getFullYear()}년 ${f.getMonth()+1}월 ${f.getDate()}일 — ${l.getMonth()+1}월 ${l.getDate()}일`;
+    }
+  }
+  function updateTermFromRows(rows) {
+    const el = document.getElementById('term-display');
+    if (!el) return;
+    if (rows && rows.length > 0) {
+      el.textContent = `${rows[0].AY}학년도 ${rows[0].SEM}학기`;
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  async function tryFetchRows(url) {
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      return data.hisTimetable ? data.hisTimetable[1].row : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function fetchTimetable(from, to) {
+    const baseUrl = `https://open.neis.go.kr/hub/hisTimetable`
+      + `?KEY=${KEY}&Type=json&pIndex=1&pSize=100`
+      + `&ATPT_OFCDC_SC_CODE=${OFCDC}&SD_SCHUL_CODE=${SCHUL}`
+      + `&GRADE=${GRADE}&CLASS_NM=${CLASS_NM}`
+      + `&TI_FROM_YMD=${from}&TI_TO_YMD=${to}`;
+
+    let rows = await tryFetchRows(baseUrl);
+    if (rows.length === 0) {
+      const ay = getAY(baseMonday);
+      const sem = getSem(baseMonday);
+      rows = await tryFetchRows(`${baseUrl}&AY=${ay}&SEM=${sem}`);
+    }
+    return rows;
+  }
+
+  function formatSubjectContent(rawText) {
+    if (!rawText || rawText === '-') return '-';
+    const trimmed = rawText.trim();
+    
+    let subject = trimmed;
+    let teacher = '';
+
+    if (trimmed.includes('/')) {
+      const parts = trimmed.split('/');
+      subject = parts[0].trim();
+      teacher = parts.slice(1).join('/').trim();
+    } 
+    
+    if (!teacher && teacherMappings && teacherMappings[subject]) {
+      teacher = teacherMappings[subject];
+    }
+
+    if (teacher) {
+      return `<div class="subj-name">${escapeHtml(subject)}</div><div class="teacher-name">${escapeHtml(teacher)}</div>`;
+    } else {
+      return `<div class="subj-name">${escapeHtml(trimmed)}</div>`;
+    }
+  }
+
+  function buildWeekTable(days, byDate) {
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+
+    let html = '<table class="week-table"><thead><tr><th class="period-head">교시</th>';
+    days.forEach(day => {
+      const today = isToday(day);
+      html += `<th class="${today ? 'today-col' : ''}">${DAY_KO[day.getDay()]}요일<span class="th-date">${fmt(day)}</span></th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    PERIODS.forEach(p => {
+      html += `<tr><td class="period-cell">${p}</td>`;
+      days.forEach(day => {
+        const today = isToday(day);
+        const row = (byDate[toYMD(day)] || {})[p];
+        const override = getOverride(day, p);
+        const hasOverride = override !== undefined && override !== '';
+        const raw = hasOverride ? override : (row ? (row.ITRT_CNTNT || '') : '');
+        const isEmpty = !raw || raw === '-';
+        
+        const classes = ['subj-cell'];
+        if (today) classes.push('today-col');
+        if (hasOverride) classes.push('overridden');
+        if (isEmpty) classes.push('empty');
+
+        const formattedContent = formatSubjectContent(raw);
+        const tagHtml = hasOverride ? ' <span class="override-tag">변경</span>' : '';
+
+        html += `<td class="${classes.join(' ')}">${formattedContent}${tagHtml}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+    return wrap;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  async function loadWeek() {
+    const days = getWeekDays(baseMonday);
+    updateWeekLabel(days);
+
+    const main = document.getElementById('main-content');
+    if (!main) return;
+    
+    main.innerHTML = `<div class="state-box"><div class="spinner"></div><div>시간표를 불러오는 중...</div></div>`;
+
+    let rows = [];
+    try {
+      await loadSettingsAndOverrides();
+      rows = await fetchTimetable(toYMD(days[0]), toYMD(days[4]));
+    } catch(e) {
+      main.innerHTML = `<div class="state-box">⚠️ 정보를 불러오지 못했습니다.</div>`;
+      return;
+    }
+
+    updateTermFromRows(rows);
+
+    const byDate = {};
+    if (rows && Array.isArray(rows)) {
+      rows.forEach(r => {
+        const d = r.ALL_TI_YMD;
+        if (!byDate[d]) byDate[d] = {};
+        const existing = byDate[d][r.PERIO];
+        if (!existing || (r.LOAD_DTM || '') >= (existing.LOAD_DTM || '')) {
+          byDate[d][r.PERIO] = r;
+        }
+      });
+    }
+
+    main.innerHTML = '';
+    main.appendChild(buildWeekTable(days, byDate));
+
+    const footnote = document.createElement('div');
+    footnote.className = 'table-footnote';
+    footnote.innerHTML = `<span class="dot"></span> 학교 측에서 수정한 칸`;
+    main.appendChild(footnote);
+  }
+
+  // 이벤트 리스너 등록
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const todayBtn = document.getElementById('today-btn');
+
+  if (prevBtn) prevBtn.addEventListener('click', () => { baseMonday.setDate(baseMonday.getDate()-7); loadWeek(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { baseMonday.setDate(baseMonday.getDate()+7); loadWeek(); });
+  if (todayBtn) todayBtn.addEventListener('click', () => { baseMonday = getMonday(new Date()); loadWeek(); });
+
+  updateTodayDisplay();
+  loadWeek();
+</script>
+</body>
+</html>
+
